@@ -6,9 +6,10 @@ import {HelperConfig} from "./HelperConfig.s.sol";
 import {SimpleAA} from "../src/ethereum/SimpleAA.sol";
 
 contract DeploySimpleAA is Script {
-    HelperConfig config = new HelperConfig();
+    HelperConfig config;
 
     function run() external returns (SimpleAA, HelperConfig) {
+        config = new HelperConfig();
         HelperConfig.NetworkConfig memory networkConfig = config.getActiveNetworkConfig();
         address owner = networkConfig.owner;
         address entryPoint = networkConfig.entryPoint;

@@ -68,7 +68,7 @@ contract SimpleAATest is Test {
         assertEq(usdc.balanceOf(address(simpleAA)), (USDC_MINT_AMOUNT - USDC_TRANSFER_AMOUNT));
     }
 
-    function testUserOpIsSignedAsExpected() public {
+    function testUserOpIsSignedAsExpected() public view {
         uint256 strangerBalanceBeforeTransfer = usdc.balanceOf(stranger);
         assertEq(strangerBalanceBeforeTransfer, 0);
 
@@ -129,7 +129,7 @@ contract SimpleAATest is Test {
 
         // Act/Assert
         vm.expectRevert();
-        uint256 validationData = simpleAA.validateUserOp(packedUserOp, packedUserOpHash, missingAccountFunds);
+        simpleAA.validateUserOp(packedUserOp, packedUserOpHash, missingAccountFunds);
     }
 
     function testFullExpectedEntryPointFlow() public {

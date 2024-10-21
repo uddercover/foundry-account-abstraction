@@ -6,11 +6,33 @@ import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/Pac
 import {IEntryPoint} from "@account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {DevOpsTools} from "@foundry-devops/src/DevOpsTools.sol";
+import {Math} from "../src/ethereum/Math.sol";
+import {SimpleAA} from "../src/ethereum/SimpleAA.sol";
 
 contract SendPackedUserOp is Script {
     using MessageHashUtils for bytes32;
 
-    function run() public {}
+    function run() public {
+        SimpleAA simpleAA = SimpleAA(payable(DevOpsTools.get_most_recent_deployment("SimpleAA", block.chainid)));
+        address entryPoint = simpleAA.getEntryPoint();
+        address simpleAAOwner = simpleAA.owner();
+        address dest = DevOpsTools.get_most_recent_deployment("Math", block.chainid);
+        uint256 value = 0;
+        bytes memory functionData = abi.encodeWithSelector(Math.add.selector, 7, 8);
+        bytes memory executeData = abi.encodeWithSelector(SimpleAA.execute.selector, dest, value, functionData);
+
+        HelperConfig.NetworkConfig memory networkConfig =
+            HelperConfig.NetworkConfig({owner: simpleAAOwner, entryPoint: entryPoint});
+
+        PackedUserOperation memory userOp = generateSignedUserOperation(executeData, networkConfig, address(simpleAA));
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = userOp;
+
+        vm.startBroadcast();
+        IEntryPoint(entryPoint).handleOps(ops, payable(address(simpleAA)));
+        vm.stopBroadcast();
+    }
 
     function generateSignedUserOperation(
         bytes memory callData,
@@ -28,6 +50,7 @@ contract SendPackedUserOp is Script {
 
         // Get userOpHash
         bytes32 unsignedUserOpHash = IEntryPoint(entryPoint).getUserOpHash(userOp);
+
         bytes32 digest = unsignedUserOpHash.toEthSignedMessageHash();
 
         // Sign and return userOp

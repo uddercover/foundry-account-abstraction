@@ -13,6 +13,7 @@ contract HelperConfig is Script {
     address zkSyncOwner = address(0);
     address anvilOwner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     address sepoliaEntryPoint = 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789;
+    uint256 anvilPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
 
     struct NetworkConfig {
         address owner;
@@ -52,7 +53,7 @@ contract HelperConfig is Script {
         }
 
         console2.log("Deploying mocks...");
-        vm.startBroadcast(anvilOwner);
+        vm.startBroadcast(anvilPrivateKey);
         EntryPoint mockEntryPoint = new EntryPoint();
         vm.stopBroadcast();
 
